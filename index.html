@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stake Multi Bets</title>
+<style>
+  body { background-color: #121212; color: #f5f5f5; font-family: Arial; }
+  h1 { text-align: center; margin-top: 20px; }
+  table { width: 90%; margin: 20px auto; border-collapse: collapse; }
+  th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+  th { background-color: #1f1f1f; }
+  tr:nth-child(even) { background-color: #1a1a1a; }
+  button { display: block; margin: 10px auto; padding: 10px 20px; cursor: pointer; background-color: #2d2d2d; color: #fff; border: none; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h1>Stake Multi Bets (Live + Upcoming)</h1>
+<button onclick="fetchBets()">Refresh</button>
+<table id="betsTable">
+  <thead>
+    <tr>
+      <th>Match</th>
+      <th>Market</th>
+      <th>Odds</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="4">Loading...</td></tr>
+  </tbody>
+</table>
+
+<script>
+async function fetchBets() {
+  const tbody = document.querySelector("#betsTable tbody");
+  tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+  
+  try {
+    // Using a free CORS proxy
+    const proxy = 'https://api.allorigins.win/raw?url=';
+    const stakeURL = encodeURIComponent('https://stake.com/sports/api/v1/events'); // Example Stake endpoint
+    const response = await fetch(proxy + stakeURL);
+    const data = await response.json();
+    
+    tbody.innerHTML = '';
+    data.events.forEach(match => {
+      const teams = match.participants.map(p => p.name).join(' vs ');
+      const market = match.markets[0]?.name || 'N/A';
+      const odds = match.markets[0]?.selections.map(s => `${s.name} ${s.odds}`).join(', ') || 'N/A';
+      const time = new Date(match.startTime).toLocaleTimeString();
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${teams}</td>
+                       <td>${market}</td>
+                       <td>${odds}</td>
+                       <td>${time}</td>`;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="4">Failed to fetch data</td></tr>';
+    console.error(err);
+  }
+}
+
+// Auto-refresh every 60 seconds
+setInterval(fetchBets, 60000);
+fetchBets();
+</script>
+</body>
+</html>
