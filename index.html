@@ -36,19 +36,23 @@ async function fetchBets() {
   tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
   
   try {
-    // Using a free CORS proxy
-    const proxy = 'https://api.allorigins.win/raw?url=';
-    const stakeURL = encodeURIComponent('https://stake.com/sports/api/v1/events'); // Example Stake endpoint
-    const response = await fetch(proxy + stakeURL);
+    // Using a more reliable free proxy
+    const proxy = 'https://thingproxy.freeboard.io/fetch/';
+    const stakeURL = 'https://stake.com/sports/api/v1/events'; // Stake API endpoint
+    const response = await fetch(proxy + stakeURL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0' // Helps bypass some blocks
+      }
+    });
     const data = await response.json();
-    
+
     tbody.innerHTML = '';
     data.events.forEach(match => {
       const teams = match.participants.map(p => p.name).join(' vs ');
       const market = match.markets[0]?.name || 'N/A';
       const odds = match.markets[0]?.selections.map(s => `${s.name} ${s.odds}`).join(', ') || 'N/A';
       const time = new Date(match.startTime).toLocaleTimeString();
-      
+
       const row = document.createElement('tr');
       row.innerHTML = `<td>${teams}</td>
                        <td>${market}</td>
@@ -56,6 +60,7 @@ async function fetchBets() {
                        <td>${time}</td>`;
       tbody.appendChild(row);
     });
+
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="4">Failed to fetch data</td></tr>';
     console.error(err);
